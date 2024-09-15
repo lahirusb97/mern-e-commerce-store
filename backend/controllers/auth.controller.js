@@ -128,5 +128,48 @@ export const logOut = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 //* refreshing acess token */
-export const refreshToken = async (req, res) => {};
+export const refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken)
+      return res.status(400).json({ message: "No refresh token found" });
+    // Return a successful response with a 200 status code.
+
+    const decoded = jwt.verify(refreshToken, process.env.ACCESS_TOKE);
+    // Handle any errors that occur during the logout process.
+
+    const storedToken = await redist.get(`refreshToken:${decoded.useID}`);
+    // Return an error response with a 500 status code.
+
+    if (storedToken !== refreshToken)
+      return res.status(400).json({ message: "Invalid refresh token" });
+
+    const accessToken = jwt.sign(
+      { useID: decoded.useID },
+      process.env.ACCESS_TOKE,
+      { expiresIn: "15m" }
+    );
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.status(200).json({ message: "Token refreshed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+export const getProfile = async (req, res) => {
+  try {
+    res.json(req.user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
