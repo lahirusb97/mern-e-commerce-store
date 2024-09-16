@@ -16,7 +16,10 @@ import {
 } from "@mui/material";
 import { Eye, EyeOff } from "lucide-react";
 import theme from "../theme";
-
+import axiosInstance from "../lib/axios";
+import { useAuth } from "../context/authContext";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 export default function SingUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -25,7 +28,8 @@ export default function SingUp() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-
+  const { signup, loading, user, setLoading, setUser } = useAuth();
+  const navigate = useNavigate();
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleClickShowConfirmPassword = () =>
     setShowConfirmPassword((show) => !show);
@@ -33,7 +37,33 @@ export default function SingUp() {
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
+  const handleSingUp = async (event) => {
+    event.preventDefault();
+    setLoading(true);
 
+    if (password !== confirmPassword) {
+      setLoading(false);
+    }
+
+    try {
+      const res = await axiosInstance.post("/auth/signup", {
+        name,
+        email,
+        password,
+      });
+      setUser(res.data);
+      if (res.data) {
+        navigate("/");
+        if (res.data.role === "admin") {
+          navigate("/admin");
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <ThemeProvider theme={theme}>
       <Box
@@ -43,6 +73,7 @@ export default function SingUp() {
           alignItems: "center",
           justifyContent: "center",
           bgcolor: "background.default",
+          backgroundImage: "url(/bg.jpg)",
         }}
       >
         <Container maxWidth="sm">
@@ -60,7 +91,7 @@ export default function SingUp() {
                 Sign up to start shopping with us
               </Typography>
             </Box>
-            <form>
+            <form onSubmit={handleSingUp}>
               <TextField
                 fullWidth
                 label="Name"
@@ -203,7 +234,7 @@ export default function SingUp() {
                 type="submit"
                 fullWidth
                 variant="contained"
-                disabled={!termsAccepted}
+                disabled={!termsAccepted || loading}
                 sx={{ mt: 2, mb: 2 }}
               >
                 Sign Up
@@ -225,6 +256,7 @@ export default function SingUp() {
                     color: "primary.main",
                     "&:hover": { color: "primary.light" },
                   }}
+                  onClick={() => navigate("/login")}
                 >
                   Sign In
                 </Link>

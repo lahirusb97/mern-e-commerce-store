@@ -2,6 +2,7 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import NavBar from "./NavBar";
 
 // Mock function to check if the user is authenticated
 
@@ -12,7 +13,14 @@ const ProtectedRoute = () => {
   if (checkingAuth) {
     return <div>Loading...</div>;
   }
-  return user?.role === "admin" ? <Outlet /> : <Navigate to="/login" replace />;
+  return user?.role === "admin" ? (
+    <div>
+      <NavBar />
+      <Outlet />
+    </div>
+  ) : (
+    <Navigate to="/login" replace />
+  );
 };
 
 export default ProtectedRoute;

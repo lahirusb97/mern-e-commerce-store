@@ -18,16 +18,16 @@ import {
 } from "@mui/material";
 import { Eye, EyeOff } from "lucide";
 import theme from "../theme";
-import axios from "axios";
 import axiosInstance from "../lib/axios";
 import { useAuth } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("@gma1sia4l.com");
   const [password, setPassword] = useState("admin9");
-  const { user, logout, login, loading } = useAuth();
+  const { user, setUser, setLoading, loading } = useAuth();
   const navigate = useNavigate();
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -36,9 +36,27 @@ export default function Login() {
   };
   const handleLogin = async (event) => {
     event.preventDefault();
-    login(email, password);
-    navigate("/admin");
+    setLoading(true);
+    try {
+      const res = await axiosInstance.post("/auth/login", { email, password });
+      setUser(res.data);
+
+      if (res.data) {
+        navigate("/"); // redirect after setting user
+
+        if (res.data.role === "admin") {
+          navigate("/admin"); // additional redirect
+        }
+      }
+      toast.success(res.data?.name || "Login Success");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An error occurred");
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <Box
       sx={{
@@ -47,6 +65,7 @@ export default function Login() {
         alignItems: "center",
         justifyContent: "center",
         bgcolor: "background.default",
+        backgroundImage: "url(/bg.jpg)",
       }}
     >
       <Container maxWidth="sm">
@@ -64,7 +83,7 @@ export default function Login() {
               Sign in to your account
             </Typography>
           </Box>
-          <form>
+          <form onSubmit={handleLogin}>
             <TextField
               fullWidth
               label="Email"
@@ -138,7 +157,6 @@ export default function Login() {
               fullWidth
               variant="contained"
               sx={{ mt: 2, mb: 2 }}
-              onClick={handleLogin}
               disabled={loading}
             >
               {loading ? "Loading..." : "Sign In"}
@@ -160,6 +178,7 @@ export default function Login() {
                   color: "primary.main",
                   "&:hover": { color: "primary.light" },
                 }}
+                onClick={() => navigate("/signup")}
               >
                 Sign up
               </Link>

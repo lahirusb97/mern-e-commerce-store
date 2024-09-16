@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import SingUp from "./pages/SingUp";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DefaultLayout from "./components/DefaultLayout";
+import NavBar from "./components/NavBar";
 
 // Layout for admin routes
 
@@ -20,17 +21,30 @@ import DefaultLayout from "./components/DefaultLayout";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
+    element: (
+      <div>
+        <NavBar />
+        <Home />
+      </div>
+    ),
     index: true,
   },
 
   {
     path: "/login",
-    element: <Login />,
+    element: (
+      <div>
+        <Login />
+      </div>
+    ),
   },
   {
-    path: "/register",
-    element: <SingUp />,
+    path: "/signup",
+    element: (
+      <div>
+        <SingUp />
+      </div>
+    ),
   },
 
   {
